@@ -14,7 +14,7 @@ app.use(
       origin: [
         "http://localhost:5173", // FE local (Vite)
         "http://localhost:3000", // FE local (React แบบอื่น)
-        "https://your-frontend.vercel.app", // FE deployed (Vercel)
+        "https://test-fe-be.vercel.app/", // FE deployed (Vercel)
       ],
     })
   );
