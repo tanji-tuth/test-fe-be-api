@@ -1,11 +1,23 @@
 import 'dotenv/config';
 import express from 'express';
 import pool from './utils/db.mjs';
+import cors from "cors";
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
+
+// ✅ ใส่ CORS ตรงนี้ (หลังสร้าง app และก่อน routes)
+app.use(
+    cors({
+      origin: [
+        "http://localhost:5173", // FE local (Vite)
+        "http://localhost:3000", // FE local (React แบบอื่น)
+        "https://your-frontend.vercel.app", // FE deployed (Vercel)
+      ],
+    })
+  );
 
 app.get("/health", (req, res) => {
     res.status(200).json({ message: "OK" });
