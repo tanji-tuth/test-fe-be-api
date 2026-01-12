@@ -7,6 +7,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+app.get("/health", (req, res) => {
+    res.status(200).json({ message: "OK" });
+  });
+
 // GET /posts - ดึงข้อมูล posts ทั้งหมด
 app.get('/posts', async (req, res) => {
   try {
@@ -50,6 +54,49 @@ app.get('/posts', async (req, res) => {
       error: 'Failed to fetch posts',
       message: errorMessage,
       code: error.code || 'UNKNOWN_ERROR'
+    });
+  }
+});
+
+// POST /posts - สร้าง post ใหม่
+app.post('/posts', async (req, res) => {
+  try {
+    const { title, image, category_id, description, content, status_id } = req.body;
+
+    // ตรวจสอบว่ามีข้อมูลครบถ้วน
+    if (!title || !image || category_id === undefined || !content || status_id === undefined) {
+      return res.status(400).json({
+        message: 'Server could not create post because there are missing data from client'
+      });
+    }
+
+    // Insert ข้อมูลลงฐานข้อมูล
+    const query = `
+      INSERT INTO posts (title, image, category_id, description, content, status_id)
+      VALUES ($1, $2, $3, $4, $5, $6)
+      RETURNING id, title, image, category_id, description, content, status_id, date, likes_count
+    `;
+
+    const values = [title, image, category_id, description || null, content, status_id];
+    const result = await pool.query(query, values);
+
+    res.status(201).json({
+      message: 'Created post sucessfully'
+    });
+  } catch (error) {
+    console.error('Error creating post:', error);
+    
+    // ตรวจสอบว่าเป็น database connection error
+    if (error.code === 'ENOTFOUND' || error.code === 'ECONNREFUSED' || error.code === 'ETIMEDOUT') {
+      return res.status(500).json({
+        message: 'Server could not create post because database connection'
+      });
+    }
+
+    // Error อื่นๆ
+    res.status(500).json({
+      message: 'Server could not create post',
+      error: error.message
     });
   }
 });
